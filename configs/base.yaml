@@ -1,0 +1,91 @@
+# config.yaml
+data:
+  ship_methods: ["SWA", "UPS_GROUND"]
+  outlier_quantiles: [0.001, 0.999]
+  bucket_path: "s3://df-shipment-speed/inputs/shipment_data/"
+  file_pattern: "*Two_Years_test_data*.parquet"
+
+model:
+  name: "direct_fulfillment_speed_forecast_model"
+  version: "1.0.0"
+  target_quantiles: [0.05, 0.1, 0.25, 0.5, 0.75, 0.95, 0.99]
+  label: "c2d_days_1"
+  features:
+    regular:
+      - dea_miss_reason
+      - dow_of
+      - distance_mi
+      - vendor_primary_gl_description
+      - warehouse_id
+      - destination_zip3
+      - month_of
+      - is_fasttrack
+      - is_sat_delivery
+      - unpadded_c2p_weekofyear
+
+    event:
+        - is_new_year_week
+        - is_new_year_week_prior
+        - is_memorial_week
+        - is_memorial_week_prior
+        - is_labor_day_week
+        - is_labor_day_week_prior
+        - is_thanksgiving_week
+        - is_thanksgiving_week_prior
+        - is_christmas_week
+        - is_christmas_week_prior
+        - is_black_friday_week
+        - is_black_friday_week_prior
+        - is_cyber_monday_week
+        - is_cyber_monday_week_prior
+        - is_prime_week
+        - is_prime_fall_deal_event_week
+        - is_super_bowl_week
+        - is_super_bowl_week_prior
+
+  test_size: 0.3
+  random_state: 12345
+  time_limit: 200
+  num_cpus: 2
+  hyperparameters:
+              GBM:
+                num_boost_round: 2000
+                learning_rate: 0.01
+                num_leaves: 31
+                feature_fraction: 0.8
+                bagging_fraction: 0.8
+                bagging_freq: 5
+                min_data_in_leaf: 10000
+                objective: quantile
+                metric: quantile
+
+              XGB:
+                n_estimators: 2000
+                learning_rate: 0.01
+                max_depth: 6
+                min_child_weight: 1
+                subsample: 0.8
+                colsample_bytree: 0.8
+                objective: reg:quantile
+
+train:
+  random_state: 1234
+
+predict:
+  random_state: 1234
+
+evaluate:
+  random_state: 1234
+
+logging:
+  level: "INFO"
+  save_path: "logs/"
+  file_name: "df-shipment-speed"
+  file_extension: ".log"
+
+PathConfig:
+  model_save_dir: "../trained_models/"
+  results_save_dir: "results/"
+  reports_save_dir: "reports/"
+  logs_save_dir: "logs/"
+  outputs_save_dir: "outputs/"
